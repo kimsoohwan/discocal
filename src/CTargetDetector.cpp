@@ -230,7 +230,7 @@ bool TargetDetector::compare(cv::Point2i a, cv::Point2i b){
 
 bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bool debug){
 
-    cv::Mat img_origin, img_blur, img_thresh, img_contour, img_output;
+    cv::Mat img_origin, img_blur, img_thresh, img_morph, img_contour, img_output;
 
     cvtColor(img, img_origin, cv::COLOR_GRAY2BGR);
     cv::fastNlMeansDenoisingColored(img_origin, img_origin, 10, 10, 7, 21);
@@ -249,11 +249,12 @@ bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bo
 
         for (int s = 1; s <= 5; s += 2)
         {
+            
             cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(s, s));
-            cv::morphologyEx(img_thresh, img_thresh, cv::MORPH_CLOSE, kernel);
+            cv::morphologyEx(img_thresh, img_morph, cv::MORPH_CLOSE, kernel);
 
             std::vector<std::vector<cv::Point>> contours;
-            cv::findContours(img_thresh, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+            cv::findContours(img_morph, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
             for (size_t i = 0; i < contours.size(); i++)
             {
@@ -308,6 +309,12 @@ bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bo
 
                         circle_contours[j] = cnt[0];
 
+                        // if (m1.m00 > m2.m00)
+                        // {
+                        //     circle_contours[j] = circle_contour_candidates[i];
+                        // }
+
+
                         break;
                     }  
                 }
@@ -353,6 +360,12 @@ bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bo
                     img_output.data[3*pos+2]=img_output.data[3*pos] * 0.6;
                 }  
             }
+
+            std::cout << pt.x << " " << pt.y << std::endl;
+            cv::Moments m_t = cv::moments(circle_contours[i]);
+            pt.x = m_t.m10/m_t.m00;
+            pt.y = m_t.m01/m_t.m00;
+            std::cout << pt.x << " " << pt.y << std::endl << std::endl;
             source.push_back(pt);
         }
     }
@@ -385,6 +398,8 @@ bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bo
     bool result=false;
 
 
+
+
     if(target.size()==n_x*n_y){
         result=true;
         if(debug){
@@ -400,8 +415,8 @@ bool TargetDetector::detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bo
     }
     if(debug)
     {
-        if(is_thermal) cv::resize(img_output, img_output, cv::Size(img_output.cols*2, img_output.rows*2));
-        else cv::resize(img_output, img_output, cv::Size(img_output.cols*0.8, img_output.rows*0.8));
+        if(is_thermal) cv::resize(img_output, img_output, cv::Size(img_output.cols*1, img_output.rows*1));
+        else cv::resize(img_output, img_output, cv::Size(img_output.cols*0.5, img_output.rows*0.5));
         cv::imshow("input_image",img_output);
     }
     

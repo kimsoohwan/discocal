@@ -35,9 +35,10 @@ class TargetDetector{
         bool prev_success, use_weight;
         bool do_iterative_search;
         string TYPE;
-        
+        std::vector<cv::Scalar> text_colors;
 
         bool detect_circles(cv::Mat img, vector<cv::Point2f>&target, bool debug=false);
+        bool detect_circles2(cv::Mat img, vector<cv::Point2f>&target, bool debug=false);
         void dfs(cv::Mat img, vector<vector<bool>> &buffer, vector<array<int,3>> &area, int x, int y);
         bool check_pixel(cv::Mat img, int x, int y);
         bool ellipse_test(const vector<array<int,3>> &area,cv::Point2f &pt);
